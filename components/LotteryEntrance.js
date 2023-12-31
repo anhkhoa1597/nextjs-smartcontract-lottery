@@ -11,10 +11,8 @@ export default function LotteryEntrance() {
     const { Moralis, isWeb3Enabled, chainId: chainIdHex } = useMoralis()
     // // These get re-rendered every time due to our connect button!
     const chainId = parseInt(chainIdHex)
-    console.log(`ChainId is ${chainId}`)
     const raffleAddress = chainId in contractAddresses ? contractAddresses[chainId][0] : null
     // const chainIds = Object.keys(contractAddresses)
-    console.log(`raffleAddress is ${raffleAddress}`)
 
     // // State hooks
     const [entranceFee, setEntranceFee] = useState("0")
@@ -23,6 +21,7 @@ export default function LotteryEntrance() {
     const [countdown, setCountdown] = useState()
     const [chainIdstate, setchainIdstate] = useState("0")
     const [raffleState, setRaffleState] = useState(0)
+    const [stateCalculating, setStateCalculating] = useState(0)
 
     const dispatch = useNotification()
 
@@ -93,7 +92,6 @@ export default function LotteryEntrance() {
         const currentTime = Math.floor(Date.now() / 1000)
         const timeElapsed = currentTime - lastTimeStampFromCall
         const timeRemaining = intervalFromCall - timeElapsed
-        console.log("recentWinnerFromCall: ", recentWinnerFromCall)
 
         setEntranceFee(entranceFeeFromCall.toString())
         setNumberOfPlayers(numPlayersFromCall.toString())
@@ -112,6 +110,23 @@ export default function LotteryEntrance() {
             const timeRemaining = interval + lastTimeStamp - currentTime
 
             setCountdown(Math.max(timeRemaining, 0))
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const updateStateCalculating = async () => {
+        try {
+            console.log("calculating...")
+            setStateCalculating(1)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+    const updateStateNotCalculating = async () => {
+        try {
+            console.log("not calculate")
+            setStateCalculating(0)
         } catch (error) {
             console.error(error)
         }
@@ -152,12 +167,14 @@ export default function LotteryEntrance() {
             const onRequestedRaffleWinner = (requestId) => {
                 console.log(`Raffle Winner Requested: ${requestId}`)
                 // Cập nhật UI hoặc trạng thái ở đây
+                updateStateCalculating()
                 updateUIValues()
             }
 
             const onWinnerPicked = (winner) => {
                 console.log(`Winner Picked: ${winner}`)
                 // Cập nhật UI hoặc trạng thái ở đây
+                updateStateNotCalculating()
                 updateUIValues()
 
                 dispatch({
@@ -209,7 +226,8 @@ export default function LotteryEntrance() {
                 <h1 className="text-3xl font-bold text-center text-blue-600 mb-4">Lottery</h1>
                 {raffleAddress ? (
                     <>
-                        {!raffleState ? (
+                        {!raffleState &&
+                        (parseInt(numberOfPlayers) >= 1 || parseInt(countdown) <= 0) ? (
                             <div className="text-center space-y-4">
                                 {parseInt(numberOfPlayers) >= 1 ? (
                                     <p className="text-xl font-semibold text-gray-700">
@@ -240,6 +258,12 @@ export default function LotteryEntrance() {
                                         "Enter Raffle"
                                     )}
                                 </button>
+                            </div>
+                        ) : !stateCalculating ? (
+                            <div
+                                className={`${styles.blinkingText} text-xl font-semibold text-center text-gray-700`}
+                            >
+                                Requesting...
                             </div>
                         ) : (
                             <div
