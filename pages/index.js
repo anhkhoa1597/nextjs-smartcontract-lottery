@@ -3,14 +3,12 @@ import styles from "../styles/Home.module.css"
 import Header from "@/components/Header"
 import LotteryEntrance from "@/components/LotteryEntrance"
 import ManualHeader from "@/components/ManualHeader"
-// import { useMoralis } from "react-moralis"
+import { useMoralis } from "react-moralis"
 
 const supportedChains = ["31337", "11155111"]
 
 export default function Home() {
-    // const { isWeb3Enabled, chainId } = useMoralis()
-    const isWeb3Enabled = true
-    const chainId = 31337
+    const { isWeb3Enabled, chainId } = useMoralis()
 
     return (
         <div className={styles.container}>
